@@ -1,6 +1,6 @@
 /**
-*   @file    Flash.c
-*   @version Major.minor.path
+*   @file    Board.c
+*   @version 1.0.0
 *
 *   @brief   
 *   @details 
@@ -12,17 +12,17 @@
 *   Peripheral           : 
 *   Dependencies         : 
 *
-*   Autosar Version      : ..
-*   Autosar Revision     : 
-*   Autosar Conf.Variant :
-*   SW Version           : ..
+*   SW Version           : 1.0.0
 *   Build Version        : 
 *
-*   (c) Copyright Y/mm/dd 
+*   (c) Copyright 17/04/2015
 *   All Rights Reserved.
 ==================================================================================================*/
 /*==================================================================================================
 *                                               REVISION HISTORY
+                             Modification     Tracking
+Author                       Date D/M/Y       Number     Description of Changes
+Nguyen Van Hung              17/04/2015                 Initial code
 ==================================================================================================*/
 #ifdef __cplusplus
 extern "C"{
@@ -34,11 +34,11 @@ extern "C"{
 * 2) needed interfaces from external units
 * 3) internal and external interfaces from this unit
 ==================================================================================================*/
-#include "Flash.h"
+#include "Board.h"
 /*==================================================================================================
 *                                      GLOBAL VARIABLES
 ==================================================================================================*/
-
+uint8 state=0;
 /*==================================================================================================
 *                                   LOCAL FUNCTION PROTOTYPES
 ==================================================================================================*/
@@ -46,75 +46,66 @@ extern "C"{
 /*==================================================================================================
 *                                       LOCAL FUNCTIONS
 ==================================================================================================*/
-
-STATIC uint8 s_savWDT;
-
-STATIC halIntState_t fuIntState;
-
-// Function prototypes
-STATIC void initFlash(void);
-STATIC void doneFlash(void);
-
-STATIC void initFlash(void)
+void Board_Init(void)
 {
-  HAL_ENTER_CRITICAL_SECTION( fuIntState );  // Hold off interrupts.
-
-  s_savWDT = WDTCTL & 0xFF;
-
-  WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
-
-#if defined FCTL2
-  FCTL2 = FWKEY + FSSEL_1 + FN4 + FN3;  // Flash Timing Generator as MCLK/24 -> 333 kHz.
-#endif
-
-#if defined HAL_BOARD_F5438
-  if (FCTL3 & LOCKA)
-  {
-    FCTL3 = FWKEY + LOCKA;  // Clear the user info pages lock for writing the IEEE.
-  }
-#endif
+  //config Data Input
+  INTERACT_NOT_ALL(INPUT,DIR,&);
+  
+  DATA_VALID_DIR &= (~DATA_VALID_BIT);
+  
+  INTERACT_ALL( OUTPUT, DIR, | );
+  
+  INDICATOR_LED_DIR |= INDICATOR_LED_BV;
+  
+  /*Enable pull-down register*/
+  INTERACT_ALL( INPUT, REN, | );
+  
+  DATA_VALID_REN |= DATA_VALID_BV;
+  DATA_INPUT_0_ALT_REN |= DATA_INPUT_0_ALT_BV;
+  
+  /*config pull-down register*/
+  INTERACT_NOT_ALL( INPUT, DOUT, & );
+  
+  DATA_VALID_DOUT &= ( ~DATA_VALID_BV );
+  
+  DATA_INPUT_0_ALT_DOUT &= ( ~DATA_INPUT_0_ALT_BV );
+  
+  INTERACT_NOT_ALL( OUTPUT, DOUT, & );
+  
+  INDICATOR_LED_DOUT |= INDICATOR_LED_BV;
+  
+  /* Select edge */
+  DATA_VALID_IES &= ( ~DATA_VALID_BV ); /* low-to-high edge select */
+  DATA_INPUT_0_ALT_IES &= (~DATA_INPUT_0_ALT_BV);
+  /* Clear all interrupt flag */
+  DATA_VALID_IFG &= ( ~DATA_VALID_BV );
+  DATA_INPUT_0_ALT_IFG &= (~DATA_INPUT_0_ALT_BV);
+  
+  /*config Interupt mask*/
+  DATA_VALID_IE |= DATA_VALID_BV; /* Enable interrupt */
+  DATA_INPUT_0_ALT_IE |= DATA_INPUT_0_ALT_BV; /* Enable interrupt */
+  
 }
 
-STATIC void doneFlash()
+HAL_ISR_FUNCTION(P1_ISR, PORT1_VECTOR)
 {
-  // restore WDT
-  WDTCTL = WDTPW + s_savWDT;
-
-  HAL_EXIT_CRITICAL_SECTION( fuIntState );   // Re-enable interrupts.
-
-  return;
-}
-
-void flashErasePage(uint8 *addr)
-{
-  initFlash();
-
-  FCTL1 = FWKEY + ERASE;               // Set Erase bit
-  FCTL3 = FWKEY;                       // Clear Lock bit
-  *addr = 0;                           // Dummy write to erase Flash segment
-  FCTL1 = FWKEY;                       // Clear ERASE bit
-  FCTL3 = FWKEY + LOCK;                // Set LOCK bit
-
-  doneFlash();
-  return;
-}
-
-void flashWrite( uint8 *addr, uint16 len, uint8 *buf )
-{
-  initFlash();
-
-  FCTL3 = FWKEY;                // Clear Lock bit
-  FCTL1 = FWKEY + WRT;          // Set WRT bit for write operation
-
-  while ( len-- )
-  {
-    *addr++ = *buf++;            // Write value to flash
-  }
-
-  FCTL1 = FWKEY;                // Clear WRT bit
-  FCTL3 = FWKEY + LOCK;         // Set LOCK bit
-
-  doneFlash();
+      if( DATA_VALID_BV & P1IFG )
+      {
+        do
+        {
+        SCAN_DATA( state );
+      
+        PUT_DATA( state );
+        }while( 0 == state );
+        /* clear flag */
+        DATA_VALID_IFG &= (~DATA_VALID_BV);
+      }
+      
+      if ( DATA_INPUT_0_ALT_BV & P1IFG )
+      {
+        TOGGLE_OUTPUT_0;
+        DATA_INPUT_0_ALT_IFG &= (~DATA_INPUT_0_ALT_BV);
+      }
 }
 
 #ifdef __cplusplus

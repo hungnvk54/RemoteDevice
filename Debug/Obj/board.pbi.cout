@@ -1,4 +1,4 @@
-"E:\DOCUMENT\LAB'S_DOC\TI CONTEST\IAR\WriteFlash\RemoteDevice\Flash\Flash.c"
+"E:\DOCUMENT\LAB'S_DOC\TI CONTEST\IAR\WriteFlash\RemoteDevice\Board\board.c"
 -std=c99
 -ferror-limit=100
 -I
@@ -217,7 +217,7 @@ E:\DOCUMENT\LAB'S_DOC\TI CONTEST\IAR\WriteFlash\RemoteDevice\Board
 -D__PLAIN_INT_BITFIELD_IS_SIGNED__=1
 -D__IAR_COMPILERBASE__=593162
 -D__DATE__="Apr 19 2015"
--D__TIME__="08:14:11"
+-D__TIME__="09:32:58"
 -D__STDC__=1
 -D__STDC_VERSION__=199901L
 -D__STDC_HOSTED__=1

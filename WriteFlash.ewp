@@ -97,7 +97,7 @@
         </option>
         <option>
           <name>OGChipSelectMenu</name>
-          <state>MSP430F149	MSP430F149</state>
+          <state>MSP430G2553	MSP430G2553</state>
         </option>
         <option>
           <name>GStackHeapOverride</name>
@@ -317,7 +317,9 @@
         </option>
         <option>
           <name>newCCIncludePaths</name>
-          <state></state>
+          <state>$PROJ_DIR$</state>
+          <state>$PROJ_DIR$\Flash</state>
+          <state>$PROJ_DIR$\Board</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1967,16 +1969,34 @@
     </settings>
   </configuration>
   <group>
-    <name>Flash</name>
+    <name>Board</name>
     <file>
-      <name>$PROJ_DIR$\Flash\Flahs.h</name>
+      <name>$PROJ_DIR$\Board\board.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\Board\Board.h</name>
+    </file>
+  </group>
+  <group>
+    <name>Flash</name>
     <file>
       <name>$PROJ_DIR$\Flash\Flash.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\Flash\Flash.h</name>
+    </file>
   </group>
   <file>
+    <name>$PROJ_DIR$\compiler.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\macroUtility.h</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\main.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\type.h</name>
   </file>
 </project>
 
